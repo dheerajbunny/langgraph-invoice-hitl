@@ -1,0 +1,13 @@
+{
+  "invoice_id": "INV-0001",
+  "vendor_name": "alpha corp",
+  "vendor_tax_id": "TAX-123",
+  "invoice_date": "2025-12-01",
+  "due_date": "2025-12-10",
+  "amount": 1000.0,
+  "currency": "INR",
+  "line_items": [
+    { "desc": "Item A", "qty": 1, "unit_price": 1000.0, "total": 1000.0 }
+  ],
+  "attachments": []
+}

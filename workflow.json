@@ -1,0 +1,46 @@
+{
+  "version": "1.0",
+  "workflow_name": "InvoiceProcessing_v1",
+  "description": "LangGraph invoice processing with HITL checkpoint/resume and Bigtool tool selection.",
+  "config": {
+    "match_threshold": 0.90,
+    "two_way_tolerance_pct": 5,
+    "human_review_queue": "human_review_queue",
+    "checkpoint_table": "checkpoints",
+    "default_db": "sqlite:///./demo.db"
+  },
+  "inputs": {
+    "invoice_payload": {
+      "invoice_id": "string",
+      "vendor_name": "string",
+      "vendor_tax_id": "string",
+      "invoice_date": "string",
+      "due_date": "string",
+      "amount": "number",
+      "currency": "string",
+      "line_items": [
+        { "desc": "string", "qty": "number", "unit_price": "number", "total": "number" }
+      ],
+      "attachments": ["string"]
+    }
+  },
+  "stages": [
+    { "id": "INTAKE", "mode": "deterministic", "agent": "IngestNode" },
+    { "id": "UNDERSTAND", "mode": "deterministic", "agent": "OcrNlpNode" },
+    { "id": "PREPARE", "mode": "deterministic", "agent": "NormalizeEnrichNode" },
+    { "id": "RETRIEVE", "mode": "deterministic", "agent": "ErpFetchNode" },
+    { "id": "MATCH_TWO_WAY", "mode": "deterministic", "agent": "TwoWayMatcherNode" },
+    {
+      "id": "CHECKPOINT_HITL",
+      "mode": "deterministic",
+      "agent": "CheckpointNode",
+      "trigger_condition": "state.get('match_result') == 'FAILED'"
+    },
+    { "id": "HITL_DECISION", "mode": "non-deterministic", "agent": "HumanReviewNode" },
+    { "id": "RECONCILE", "mode": "deterministic", "agent": "ReconciliationNode" },
+    { "id": "APPROVE", "mode": "deterministic", "agent": "ApprovalNode" },
+    { "id": "POSTING", "mode": "deterministic", "agent": "PostingNode" },
+    { "id": "NOTIFY", "mode": "deterministic", "agent": "NotifyNode" },
+    { "id": "COMPLETE", "mode": "deterministic", "agent": "CompleteNode" }
+  ]
+}
